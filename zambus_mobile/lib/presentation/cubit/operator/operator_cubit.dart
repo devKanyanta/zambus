@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dio/dio.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../data/datasources/api_datasource.dart';
 import '../../../data/models/models.dart';
 import 'operator_state.dart';
@@ -8,32 +8,13 @@ class OperatorCubit extends Cubit<OperatorState> {
   final ApiDatasource _datasource;
   OperatorCubit(this._datasource) : super(OperatorInitial());
 
-  String _message(Object e) {
-    if (e is DioException) {
-      final data = e.response?.data;
-      if (data is Map<String, dynamic> && data['message'] != null) {
-        return data['message'] as String;
-      }
-      switch (e.type) {
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.receiveTimeout:
-          return 'Connection timed out. Check your network and try again.';
-        case DioExceptionType.connectionError:
-          return 'Cannot reach the ZamBus server. Check that the backend is running.';
-        default:
-          return e.message ?? 'Network error';
-      }
-    }
-    return e.toString();
-  }
-
   Future<void> loadBuses() async {
     try {
       emit(BusesLoading());
       final buses = await _datasource.getBuses();
       emit(BusesLoaded(buses));
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -43,7 +24,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       final routes = await _datasource.getRoutes();
       emit(RoutesLoaded(routes));
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -53,7 +34,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       final trips = await _datasource.searchTrips(limit: 50);
       emit(TripsLoaded(trips));
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -63,7 +44,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       final drivers = await _datasource.getDrivers();
       emit(DriversLoaded(drivers));
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -81,7 +62,7 @@ class OperatorCubit extends Cubit<OperatorState> {
         drivers: results[2] as List<User>,
       ));
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -110,7 +91,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       );
       emit(CompanyRegistered(company));
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -120,7 +101,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       final analytics = await _datasource.getAnalytics();
       emit(AnalyticsLoaded(analytics));
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -142,7 +123,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       emit(BusCreated(bus));
       await loadBuses();
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -164,7 +145,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       emit(RouteCreated(route));
       await loadRoutes();
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -188,7 +169,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       emit(TripCreated(trip));
       await loadTrips();
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -210,7 +191,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       }
       await loadTrips();
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 
@@ -219,7 +200,7 @@ class OperatorCubit extends Cubit<OperatorState> {
       await _datasource.delayTrip(tripId, newDepartureTime);
       await loadTrips();
     } catch (e) {
-      emit(OperatorError(_message(e)));
+      emit(OperatorError(ErrorMessages.from(e)));
     }
   }
 }

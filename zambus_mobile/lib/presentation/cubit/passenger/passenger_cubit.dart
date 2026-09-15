@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dio/dio.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../data/datasources/api_datasource.dart';
 import '../../../data/models/models.dart';
 import 'passenger_state.dart';
@@ -7,26 +7,6 @@ import 'passenger_state.dart';
 class PassengerCubit extends Cubit<PassengerState> {
   final ApiDatasource _datasource;
   PassengerCubit(this._datasource) : super(PassengerInitial());
-
-  /// Converts Dio/network errors into user-friendly messages.
-  String _message(Object e) {
-    if (e is DioException) {
-      final data = e.response?.data;
-      if (data is Map<String, dynamic> && data['message'] != null) {
-        return data['message'] as String;
-      }
-      switch (e.type) {
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.receiveTimeout:
-          return 'Connection timed out. Check your network and try again.';
-        case DioExceptionType.connectionError:
-          return 'Cannot reach the ZamBus server. Check that the backend is running.';
-        default:
-          return e.message ?? 'Network error';
-      }
-    }
-    return e.toString();
-  }
 
   Future<void> searchTrips({
     String? origin,
@@ -56,7 +36,7 @@ class PassengerCubit extends Cubit<PassengerState> {
         travelDate: travelDate,
       ));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -66,7 +46,7 @@ class PassengerCubit extends Cubit<PassengerState> {
       final trip = await _datasource.getTripById(tripId);
       emit(TripDetailsLoaded(trip));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -86,7 +66,7 @@ class PassengerCubit extends Cubit<PassengerState> {
         busCapacity: seatMap.busCapacity,
       ));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -102,7 +82,7 @@ class PassengerCubit extends Cubit<PassengerState> {
       );
       emit(BookingCreated(booking));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -116,7 +96,7 @@ class PassengerCubit extends Cubit<PassengerState> {
       );
       emit(BookingConfirmed(booking));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -126,7 +106,7 @@ class PassengerCubit extends Cubit<PassengerState> {
       final booking = await _datasource.confirmBooking(bookingId);
       emit(BookingConfirmed(booking));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -140,7 +120,7 @@ class PassengerCubit extends Cubit<PassengerState> {
       final booking = await _datasource.getBookingById(bookingId);
       emit(BookingDetailsLoaded(booking, passengerName: booking.passengerName));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -157,7 +137,7 @@ class PassengerCubit extends Cubit<PassengerState> {
       final bookings = await _datasource.getMyBookings();
       emit(MyBookingsLoaded(bookings));
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 
@@ -172,7 +152,7 @@ class PassengerCubit extends Cubit<PassengerState> {
         await getMyBookings();
       }
     } catch (e) {
-      emit(PassengerError(_message(e)));
+      emit(PassengerError(ErrorMessages.from(e)));
     }
   }
 }

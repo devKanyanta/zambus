@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dio/dio.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../data/datasources/api_datasource.dart';
 import 'driver_state.dart';
 
@@ -9,25 +9,6 @@ class DriverCubit extends Cubit<DriverState> {
 
   String? _lastTripId;
 
-  String _message(Object e) {
-    if (e is DioException) {
-      final data = e.response?.data;
-      if (data is Map<String, dynamic> && data['message'] != null) {
-        return data['message'] as String;
-      }
-      switch (e.type) {
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.receiveTimeout:
-          return 'Connection timed out. Check your network and try again.';
-        case DioExceptionType.connectionError:
-          return 'Cannot reach the ZamBus server. Check that the backend is running.';
-        default:
-          return e.message ?? 'Network error';
-      }
-    }
-    return e.toString();
-  }
-
   Future<void> loadManifest(String tripId) async {
     try {
       _lastTripId = tripId;
@@ -35,7 +16,7 @@ class DriverCubit extends Cubit<DriverState> {
       final manifest = await _datasource.getBoardingManifest(tripId);
       emit(ManifestLoaded(manifest));
     } catch (e) {
-      emit(DriverError(_message(e)));
+      emit(DriverError(ErrorMessages.from(e)));
     }
   }
 
@@ -59,7 +40,7 @@ class DriverCubit extends Cubit<DriverState> {
         seatNumber: (booking?['seatNumber'] as num?)?.toInt(),
       ));
     } catch (e) {
-      emit(DriverError(_message(e)));
+      emit(DriverError(ErrorMessages.from(e)));
     }
   }
 
@@ -71,7 +52,7 @@ class DriverCubit extends Cubit<DriverState> {
       // Refresh so the manifest reflects the new status.
       await refreshManifest();
     } catch (e) {
-      emit(DriverError(_message(e)));
+      emit(DriverError(ErrorMessages.from(e)));
     }
   }
 
@@ -82,7 +63,7 @@ class DriverCubit extends Cubit<DriverState> {
       emit(BoardingMarked(bookingId));
       await refreshManifest();
     } catch (e) {
-      emit(DriverError(_message(e)));
+      emit(DriverError(ErrorMessages.from(e)));
     }
   }
 
@@ -102,7 +83,7 @@ class DriverCubit extends Cubit<DriverState> {
       );
       emit(EmergencyReported(report));
     } catch (e) {
-      emit(DriverError(_message(e)));
+      emit(DriverError(ErrorMessages.from(e)));
     }
   }
 }

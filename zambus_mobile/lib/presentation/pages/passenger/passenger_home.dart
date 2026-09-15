@@ -7,6 +7,7 @@ import '../../cubit/auth/auth_state.dart';
 import '../../cubit/passenger/passenger_cubit.dart';
 import '../../cubit/passenger/passenger_state.dart';
 import '../../widgets/common/app_button.dart';
+import '../../widgets/common/auth_listener.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/formatters.dart';
 
@@ -77,36 +78,44 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          _buildSearchTab(),
-          const MyBookingsTab(),
-          _buildProfileTab(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.1),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search, color: AppColors.primary), label: 'Search'),
-          NavigationDestination(icon: Icon(Icons.confirmation_num_outlined), selectedIcon: Icon(Icons.confirmation_num, color: AppColors.primary), label: 'Bookings'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Profile'),
-        ],
+    // AuthListener returns the user to login when AuthCubit emits
+    // AuthUnauthenticated. The AuthGate in main.dart is replaced during
+    // login, so this page needs its own listener for sign-out to work.
+    return AuthListener(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            _buildSearchTab(),
+            const MyBookingsTab(),
+            _buildProfileTab(),
+          ],
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+          backgroundColor: AppColors.surface,
+          indicatorColor: AppColors.primary.withValues(alpha: 0.1),
+          destinations: const [
+            NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search, color: AppColors.primary), label: 'Search'),
+            NavigationDestination(icon: Icon(Icons.confirmation_num_outlined), selectedIcon: Icon(Icons.confirmation_num, color: AppColors.primary), label: 'Bookings'),
+            NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Profile'),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSearchTab() {
+    // The header keeps its primary color behind the status bar, so its
+    // content padding adds the status-bar height to stay in the safe area.
+    final statusBarHeight = MediaQuery.paddingOf(context).top;
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+            padding: EdgeInsets.fromLTRB(20, statusBarHeight + 20, 20, 30),
             decoration: const BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
@@ -292,42 +301,72 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         final user = state is AuthAuthenticated ? state.user : null;
-        return ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            const SizedBox(height: 20),
-            Center(
-              child: CircleAvatar(
-                radius: 40,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                child: Text(
-                  (user?.fullName ?? 'U')[0].toUpperCase(),
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
+        return SafeArea(
+          top: true,
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              const SizedBox(height: 20),
+              Center(
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  child: Text(
+                    (user?.fullName ?? 'U')[0].toUpperCase(),
+                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: Text(user?.fullName ?? 'User', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            ),
-            Center(
-              child: Text(user?.email ?? '', style: const TextStyle(color: AppColors.textSecondary)),
-            ),
-            const SizedBox(height: 32),
-            _ProfileTile(icon: Icons.person_outline, title: 'Edit Profile', onTap: _showEditProfileDialog),
-            _ProfileTile(icon: Icons.confirmation_num_outlined, title: 'My Bookings', onTap: () => setState(() => _selectedIndex = 1)),
-            _ProfileTile(icon: Icons.help_outline, title: 'Help & Support', onTap: _showSupportDialog),
-            _ProfileTile(icon: Icons.info_outline, title: 'About ZamBus', onTap: _showAboutDialog),
-            const SizedBox(height: 24),
-            AppButton(
-              label: 'Sign Out',
-              onPressed: () => context.read<AuthCubit>().logout(),
-              variant: AppButtonVariant.outline,
-              icon: Icons.logout,
-            ),
-          ],
+              const SizedBox(height: 16),
+              Center(
+                child: Text(user?.fullName ?? 'User', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              Center(
+                child: Text(user?.email ?? '', style: const TextStyle(color: AppColors.textSecondary)),
+              ),
+              const SizedBox(height: 32),
+              _ProfileTile(icon: Icons.person_outline, title: 'Edit Profile', onTap: _showEditProfileDialog),
+              _ProfileTile(icon: Icons.confirmation_num_outlined, title: 'My Bookings', onTap: () => setState(() => _selectedIndex = 1)),
+              _ProfileTile(icon: Icons.help_outline, title: 'Help & Support', onTap: _showSupportDialog),
+              _ProfileTile(icon: Icons.info_outline, title: 'About ZamBus', onTap: _showAboutDialog),
+              const SizedBox(height: 24),
+              AppButton(
+                label: 'Sign Out',
+                onPressed: _confirmSignOut,
+                variant: AppButtonVariant.outline,
+                icon: Icons.logout,
+              ),
+            ],
+          ),
         );
       },
+    );
+  }
+
+  /// Asks the user to confirm before signing out, then clears the session.
+  /// AuthListener handles the navigation back to login.
+  void _confirmSignOut() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out of ZamBus?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Stay'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<AuthCubit>().logout();
+            },
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -631,11 +670,14 @@ class MyBookingsTab extends StatelessWidget {
       create: (_) => getIt<PassengerCubit>()..getMyBookings(),
       child: Builder(
         builder: (context) {
-          return BlocBuilder<PassengerCubit, PassengerState>(
-            builder: (context, state) {
-              if (state is MyBookingsLoading) {
-                return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-              }
+          return SafeArea(
+            top: true,
+            bottom: false,
+            child: BlocBuilder<PassengerCubit, PassengerState>(
+              builder: (context, state) {
+                if (state is MyBookingsLoading) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                }
               if (state is MyBookingsLoaded) {
                 if (state.bookings.isEmpty) {
                   return Center(
@@ -764,9 +806,10 @@ class MyBookingsTab extends StatelessWidget {
               }
               return const Center(child: Text('Pull down to refresh'));
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
+    ),
     );
   }
 }

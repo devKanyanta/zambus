@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dio/dio.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../data/datasources/api_datasource.dart';
 import 'admin_state.dart';
 
@@ -7,32 +7,13 @@ class AdminCubit extends Cubit<AdminState> {
   final ApiDatasource _datasource;
   AdminCubit(this._datasource) : super(AdminInitial());
 
-  String _message(Object e) {
-    if (e is DioException) {
-      final data = e.response?.data;
-      if (data is Map<String, dynamic> && data['message'] != null) {
-        return data['message'] as String;
-      }
-      switch (e.type) {
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.receiveTimeout:
-          return 'Connection timed out. Check your network and try again.';
-        case DioExceptionType.connectionError:
-          return 'Cannot reach the ZamBus server. Check that the backend is running.';
-        default:
-          return e.message ?? 'Network error';
-      }
-    }
-    return e.toString();
-  }
-
   Future<void> loadPendingCompanies() async {
     try {
       emit(PendingCompaniesLoading());
       final companies = await _datasource.getPendingCompanies();
       emit(PendingCompaniesLoaded(companies));
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -42,7 +23,7 @@ class AdminCubit extends Cubit<AdminState> {
       emit(CompanyApproved(id));
       await loadPendingCompanies();
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -51,7 +32,7 @@ class AdminCubit extends Cubit<AdminState> {
       await _datasource.rejectCompany(id);
       await loadPendingCompanies();
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -61,7 +42,7 @@ class AdminCubit extends Cubit<AdminState> {
       final users = await _datasource.getAllUsers(role: role, page: page, limit: limit);
       emit(AllUsersLoaded(users, users.length));
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -71,7 +52,7 @@ class AdminCubit extends Cubit<AdminState> {
       emit(UserRoleUpdated(id, role));
       await loadAllUsers();
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -81,7 +62,7 @@ class AdminCubit extends Cubit<AdminState> {
       final analytics = await _datasource.getAnalytics();
       emit(AnalyticsLoaded(analytics));
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -91,7 +72,7 @@ class AdminCubit extends Cubit<AdminState> {
       await _datasource.updateCommission(rate);
       emit(CommissionUpdated(rate));
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -100,7 +81,7 @@ class AdminCubit extends Cubit<AdminState> {
       final settings = await _datasource.getSettings();
       emit(SettingsLoaded(settings));
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 
@@ -110,7 +91,7 @@ class AdminCubit extends Cubit<AdminState> {
       emit(SettingsUpdated());
       await loadSettings();
     } catch (e) {
-      emit(AdminError(_message(e)));
+      emit(AdminError(ErrorMessages.from(e)));
     }
   }
 }

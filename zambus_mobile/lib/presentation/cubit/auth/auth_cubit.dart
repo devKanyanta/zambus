@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../data/datasources/api_datasource.dart';
 import '../../../data/models/user_model.dart';
 import 'auth_state.dart';
@@ -46,7 +47,7 @@ class AuthCubit extends Cubit<AuthState> {
       await _apiClient.setToken(token);
       emit(AuthAuthenticated(user: user, token: token));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(ErrorMessages.from(e)));
     }
   }
 
@@ -62,11 +63,14 @@ class AuthCubit extends Cubit<AuthState> {
       await _apiClient.setToken(token);
       emit(AuthAuthenticated(user: user, token: token));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(ErrorMessages.from(e)));
     }
   }
 
   Future<void> logout() async {
+    // Clear the local session immediately so the UI reacts right away.
+    // The backend uses stateless JWT auth with no logout endpoint, so
+    // clearing the token locally is the complete sign-out.
     await _apiClient.clearToken();
     emit(AuthUnauthenticated());
   }
@@ -82,7 +86,7 @@ class AuthCubit extends Cubit<AuthState> {
         emit(AuthAuthenticated(user: user, token: currentState.token));
       }
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(ErrorMessages.from(e)));
     }
   }
 }

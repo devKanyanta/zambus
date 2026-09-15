@@ -1,6 +1,6 @@
 class AppConstants {
   // API
-  static const String baseUrl = 'http://192.168.0.190:3000/api';
+  static const String baseUrl = 'http://64.227.39.246:3050/api';
   static const int connectionTimeout = 30000;
   static const int receiveTimeout = 30000;
 
