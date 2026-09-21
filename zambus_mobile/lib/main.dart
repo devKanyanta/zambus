@@ -64,10 +64,14 @@ class AuthGate extends StatelessWidget {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.primary, Color(0xFF123B96)],
+                        ),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(Icons.directions_bus, size: 40, color: Colors.white),
+                      child: const Icon(Icons.directions_bus_rounded, size: 40, color: Colors.white),
                     ),
                     const SizedBox(height: 24),
                     const Text(AppStrings.appName, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),

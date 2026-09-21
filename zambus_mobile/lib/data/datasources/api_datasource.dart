@@ -374,6 +374,48 @@ class ApiDatasource {
     return response.data as List<dynamic>;
   }
 
+  /// All buses with approval status (admin review). Optional status filter:
+  /// PENDING, APPROVED or REJECTED.
+  Future<List<Bus>> getAdminBuses({String? status}) async {
+    final response = await _apiClient.get(
+      ApiEndpoints.adminBuses,
+      queryParameters: status != null ? {'status': status} : null,
+    );
+    final List<dynamic> data = response.data as List<dynamic>;
+    return data.map((e) => Bus.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> approveBus(String id) async {
+    final path = _apiClient.replacePathParams(ApiEndpoints.adminBusApprove, {'id': id});
+    await _apiClient.post(path);
+  }
+
+  Future<void> rejectBus(String id, {String? reason}) async {
+    final path = _apiClient.replacePathParams(ApiEndpoints.adminBusReject, {'id': id});
+    await _apiClient.post(path, data: {if (reason != null) 'reason': reason});
+  }
+
+  /// All routes with approval status (admin review). Optional status filter:
+  /// PENDING, APPROVED or REJECTED.
+  Future<List<Route>> getAdminRoutes({String? status}) async {
+    final response = await _apiClient.get(
+      ApiEndpoints.adminRoutes,
+      queryParameters: status != null ? {'status': status} : null,
+    );
+    final List<dynamic> data = response.data as List<dynamic>;
+    return data.map((e) => Route.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> approveRoute(String id) async {
+    final path = _apiClient.replacePathParams(ApiEndpoints.adminRouteApprove, {'id': id});
+    await _apiClient.post(path);
+  }
+
+  Future<void> rejectRoute(String id, {String? reason}) async {
+    final path = _apiClient.replacePathParams(ApiEndpoints.adminRouteReject, {'id': id});
+    await _apiClient.post(path, data: {if (reason != null) 'reason': reason});
+  }
+
   Future<Map<String, dynamic>> approveCompany(String id) async {
     final path = _apiClient.replacePathParams(ApiEndpoints.adminCompanyApprove, {'id': id});
     final response = await _apiClient.post(path);

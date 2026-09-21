@@ -93,22 +93,24 @@ class _RegisterCompanyPageState extends State<RegisterCompanyPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.infoLight,
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.3),
+                    color: AppColors.info.withValues(alpha: 0.25),
                   ),
                 ),
                 child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: AppColors.primary),
+                    Icon(Icons.info_outline, color: AppColors.info, size: 20),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Register your bus company to start publishing trips. Your company will need admin approval before you can operate.',
+                        'Register your bus company to get started. Our team will review and approve it before you can publish trips.',
                         style: TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary,
+                          height: 1.4,
                         ),
                       ),
                     ),

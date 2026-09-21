@@ -80,9 +80,11 @@ export const busController = {
         seatCapacity,
         amenities,
         maintenanceStatus,
+        // New buses require admin approval before they can be scheduled.
+        approvalStatus: 'PENDING',
       });
 
-      successResponse(res, 201, bus, 'Bus registered successfully');
+      successResponse(res, 201, bus, 'Bus registered successfully and is pending admin approval');
     } catch (error: any) {
       errorResponse(res, 400, error.message);
     }
@@ -114,8 +116,19 @@ export const busController = {
         return;
       }
 
+      // Operators cannot self-approve or change approval fields.
+      delete updates.approvalStatus;
+      delete updates.rejectionReason;
+
       await bus.update(updates);
       await bus.save();
+
+      // An operator edit of a rejected bus resubmits it for admin review.
+      if (!isAdmin && bus.approvalStatus === 'REJECTED') {
+        bus.approvalStatus = 'PENDING';
+        bus.rejectionReason = null;
+        await bus.save();
+      }
 
       successResponse(res, 200, bus, 'Bus updated successfully');
     } catch (error: any) {

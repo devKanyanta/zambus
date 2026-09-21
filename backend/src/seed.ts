@@ -121,6 +121,7 @@ async function seed(): Promise<void> {
         seatCapacity: 30,
         amenities: ['WiFi', 'USB Charging'],
         maintenanceStatus: 'OPERATIONAL',
+        approvalStatus: 'APPROVED',
       },
       {
         registrationNumber: 'ZB-BUS-002',
@@ -128,6 +129,7 @@ async function seed(): Promise<void> {
         seatCapacity: 45,
         amenities: ['WiFi', 'USB Charging', 'Entertainment'],
         maintenanceStatus: 'OPERATIONAL',
+        approvalStatus: 'APPROVED',
       },
       {
         registrationNumber: 'ZB-BUS-003',
@@ -135,6 +137,15 @@ async function seed(): Promise<void> {
         seatCapacity: 25,
         amenities: ['WiFi'],
         maintenanceStatus: 'MAINTENANCE',
+        approvalStatus: 'PENDING',
+      },
+      {
+        registrationNumber: 'ZB-BUS-004',
+        model: 'Hino 300',
+        seatCapacity: 34,
+        amenities: ['AC', 'USB Charging'],
+        maintenanceStatus: 'OPERATIONAL',
+        approvalStatus: 'PENDING',
       },
     ];
 
@@ -165,6 +176,7 @@ async function seed(): Promise<void> {
         destination: 'Livingstone',
         intermediateStops: ['Kafue', 'Choma', 'Kalomo'],
         estimatedTravelTime: 360, // 6 hours
+        approvalStatus: 'APPROVED',
       },
       {
         routeName: 'Lusaka - Ndola',
@@ -172,6 +184,7 @@ async function seed(): Promise<void> {
         destination: 'Ndola',
         intermediateStops: ['Kabwe', 'Kapiri Mposhi', 'Mpika'],
         estimatedTravelTime: 420, // 7 hours
+        approvalStatus: 'APPROVED',
       },
       {
         routeName: 'Lusaka - Chipata',
@@ -179,6 +192,15 @@ async function seed(): Promise<void> {
         destination: 'Chipata',
         intermediateStops: ['Mazabuka', 'Petauke'],
         estimatedTravelTime: 300, // 5 hours
+        approvalStatus: 'APPROVED',
+      },
+      {
+        routeName: 'Lusaka - Mongu',
+        origin: 'Lusaka',
+        destination: 'Mongu',
+        intermediateStops: ['Mumbwa', 'Kaoma'],
+        estimatedTravelTime: 480, // 8 hours
+        approvalStatus: 'PENDING',
       },
     ];
 

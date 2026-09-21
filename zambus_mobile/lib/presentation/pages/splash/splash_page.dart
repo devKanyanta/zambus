@@ -73,7 +73,7 @@ class _SplashPageState extends State<SplashPage>
                     ],
                   ),
                   child: const Icon(
-                    Icons.directions_bus,
+                    Icons.directions_bus_rounded,
                     size: 56,
                     color: AppColors.primary,
                   ),

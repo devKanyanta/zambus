@@ -6,6 +6,7 @@ import '../../../cubit/operator/operator_cubit.dart';
 import '../../../cubit/operator/operator_state.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_input.dart';
+import '../../../widgets/common/ui.dart';
 
 class RouteFormPage extends StatefulWidget {
   const RouteFormPage({super.key});
@@ -38,7 +39,10 @@ class _RouteFormPageState extends State<RouteFormPage> {
         listener: (context, state) {
         if (state is RouteCreated) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Route created successfully'), backgroundColor: AppColors.success),
+            const SnackBar(
+              content: Text('Route submitted — awaiting admin approval'),
+              backgroundColor: AppColors.success,
+            ),
           );
           Navigator.pop(context);
         } else if (state is OperatorError) {
@@ -56,6 +60,30 @@ class _RouteFormPageState extends State<RouteFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: AppColors.infoLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.info.withValues(alpha: 0.25)),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline, size: 18, color: AppColors.info),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'New routes are reviewed by the ZamBus admin team before trips can be scheduled on them.',
+                            style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary, height: 1.4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SectionHeader(title: 'Route Details'),
                   AppInput(
                     label: 'Route Name',
                     controller: _nameController,

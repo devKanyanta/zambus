@@ -24,6 +24,7 @@ import '../../presentation/pages/operator/trips/trip_form_page.dart';
 import '../../presentation/pages/operator/analytics/revenue_dashboard_page.dart';
 import '../../presentation/pages/operator/register_company_page.dart';
 import '../../presentation/pages/admin/admin_home.dart';
+import '../../presentation/pages/admin/approvals_page.dart';
 import '../../presentation/pages/admin/companies_page.dart';
 import '../../presentation/pages/admin/users_page.dart';
 import '../../presentation/pages/admin/settings_page.dart';
@@ -113,6 +114,9 @@ class AppRouter {
         return _buildRoute(const RegisterCompanyPage(), settings);
 
       // Admin routes
+      case '/admin/approvals':
+        final tabIndex = settings.arguments is int ? settings.arguments as int : 0;
+        return _buildRoute(ApprovalsPage(initialTabIndex: tabIndex), settings);
       case '/admin/companies':
         return _buildRoute(const CompaniesPage(), settings);
       case '/admin/users':

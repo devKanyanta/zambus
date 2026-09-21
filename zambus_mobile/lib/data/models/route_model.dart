@@ -8,6 +8,8 @@ class Route extends Equatable {
   final String destination;
   final List<String> intermediateStops;
   final int? estimatedTravelTime;
+  final String approvalStatus;
+  final String? rejectionReason;
   final DateTime? createdAt;
 
   const Route({
@@ -18,6 +20,8 @@ class Route extends Equatable {
     required this.destination,
     this.intermediateStops = const [],
     this.estimatedTravelTime,
+    this.approvalStatus = 'PENDING',
+    this.rejectionReason,
     this.createdAt,
   });
 
@@ -30,6 +34,8 @@ class Route extends Equatable {
       destination: json['destination'] as String? ?? '',
       intermediateStops: (json['intermediateStops'] as List<dynamic>?)?.whereType<String>().toList() ?? [],
       estimatedTravelTime: (json['estimatedTravelTime'] as num?)?.toInt(),
+      approvalStatus: json['approvalStatus'] as String? ?? 'PENDING',
+      rejectionReason: json['rejectionReason'] as String?,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String)
           : null,
@@ -50,7 +56,10 @@ class Route extends Equatable {
   }
 
   String get displayName => '$origin - $destination';
+  bool get isApproved => approvalStatus == 'APPROVED';
+  bool get isPending => approvalStatus == 'PENDING';
+  bool get isRejected => approvalStatus == 'REJECTED';
 
   @override
-  List<Object?> get props => [routeId, routeName, origin, destination, intermediateStops, estimatedTravelTime];
+  List<Object?> get props => [routeId, routeName, origin, destination, intermediateStops, estimatedTravelTime, approvalStatus];
 }

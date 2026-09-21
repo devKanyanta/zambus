@@ -6,6 +6,7 @@ import {
 } from 'sequelize';
 
 type MaintenanceStatus = 'OPERATIONAL' | 'MAINTENANCE' | 'OUT_OF_SERVICE';
+type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 interface BusAttributes {
   busId: string;
@@ -15,11 +16,13 @@ interface BusAttributes {
   seatCapacity: number;
   amenities: string[];
   maintenanceStatus: MaintenanceStatus;
+  approvalStatus: ApprovalStatus;
+  rejectionReason?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface BusCreationAttributes extends Optional<BusAttributes, 'busId' | 'amenities' | 'maintenanceStatus' | 'createdAt' | 'updatedAt'> {}
+interface BusCreationAttributes extends Optional<BusAttributes, 'busId' | 'amenities' | 'maintenanceStatus' | 'approvalStatus' | 'rejectionReason' | 'createdAt' | 'updatedAt'> {}
 
 export function createBusModel(sequelize: any) {
   class Bus extends Model<BusAttributes, BusCreationAttributes> implements BusAttributes {
@@ -30,6 +33,8 @@ export function createBusModel(sequelize: any) {
     public seatCapacity!: number;
     public amenities!: string[];
     public maintenanceStatus!: MaintenanceStatus;
+    public approvalStatus!: ApprovalStatus;
+    public rejectionReason?: string | null;
     public createdAt?: Date;
     public updatedAt?: Date;
 
@@ -77,6 +82,13 @@ export function createBusModel(sequelize: any) {
       maintenanceStatus: {
         type: DataTypes.ENUM('OPERATIONAL', 'MAINTENANCE', 'OUT_OF_SERVICE'),
         defaultValue: 'OPERATIONAL',
+      },
+      approvalStatus: {
+        type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'),
+        defaultValue: 'PENDING',
+      },
+      rejectionReason: {
+        type: DataTypes.STRING(255),
       },
     },
     {

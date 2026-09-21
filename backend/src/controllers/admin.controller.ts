@@ -1,6 +1,6 @@
 import express, { Response } from "express";
 import { AuthenticatedRequest } from '../middleware/auth';
-import { BusCompany, User, Trip, Booking, CommissionSettings } from '../models';
+import { BusCompany, User, Trip, Booking, CommissionSettings, Bus, Route } from '../models';
 import { sequelize } from '../config/database';
 import { config } from '../config';
 import { successResponse, errorResponse, notFoundResponse, forbiddenResponse } from '../utils/response';
@@ -73,6 +73,174 @@ export const adminController = {
       await company.destroy();
 
       successResponse(res, 200, null, 'Company rejected and removed');
+    } catch (error: any) {
+      errorResponse(res, 500, error.message);
+    }
+  },
+
+  /**
+   * GET /api/admin/buses
+   * Lists all buses with their approval status, newest first.
+   * Optional query: ?status=PENDING|APPROVED|REJECTED
+   */
+  async getBuses(req: AuthenticatedRequest, res: any): Promise<void> {
+    try {
+      if (req.user?.role !== 'ADMIN') {
+        forbiddenResponse(res, 'Only admins can review buses');
+        return;
+      }
+
+      const { status } = req.query as { status?: string };
+      const whereClause: any = {};
+      if (status && ['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
+        whereClause.approvalStatus = status;
+      }
+
+      const buses = await Bus.findAll({
+        where: whereClause,
+        include: [{ model: Bus.sequelize?.models?.BusCompany, as: 'company', attributes: ['companyId', 'companyName'] }],
+        order: [['createdAt', 'DESC']],
+      });
+
+      successResponse(res, 200, buses);
+    } catch (error: any) {
+      errorResponse(res, 500, error.message);
+    }
+  },
+
+  /**
+   * POST /api/admin/buses/:id/approve
+   */
+  async approveBus(req: AuthenticatedRequest, res: any): Promise<void> {
+    try {
+      if (req.user?.role !== 'ADMIN') {
+        forbiddenResponse(res, 'Only admins can approve buses');
+        return;
+      }
+
+      const bus = await Bus.findByPk(req.params?.id);
+      if (!bus) {
+        notFoundResponse(res, 'Bus');
+        return;
+      }
+
+      bus.approvalStatus = 'APPROVED';
+      bus.rejectionReason = null;
+      await bus.save();
+
+      successResponse(res, 200, bus, 'Bus approved successfully');
+    } catch (error: any) {
+      errorResponse(res, 500, error.message);
+    }
+  },
+
+  /**
+   * POST /api/admin/buses/:id/reject
+   * Body: { reason?: string }
+   */
+  async rejectBus(req: AuthenticatedRequest, res: any): Promise<void> {
+    try {
+      if (req.user?.role !== 'ADMIN') {
+        forbiddenResponse(res, 'Only admins can reject buses');
+        return;
+      }
+
+      const bus = await Bus.findByPk(req.params?.id);
+      if (!bus) {
+        notFoundResponse(res, 'Bus');
+        return;
+      }
+
+      const reason = (req.body as any)?.reason;
+      bus.approvalStatus = 'REJECTED';
+      bus.rejectionReason = typeof reason === 'string' && reason.trim() ? reason.trim() : null;
+      await bus.save();
+
+      successResponse(res, 200, bus, 'Bus rejected');
+    } catch (error: any) {
+      errorResponse(res, 500, error.message);
+    }
+  },
+
+  /**
+   * GET /api/admin/routes
+   * Lists all routes with their approval status, newest first.
+   * Optional query: ?status=PENDING|APPROVED|REJECTED
+   */
+  async getRoutes(req: AuthenticatedRequest, res: any): Promise<void> {
+    try {
+      if (req.user?.role !== 'ADMIN') {
+        forbiddenResponse(res, 'Only admins can review routes');
+        return;
+      }
+
+      const { status } = req.query as { status?: string };
+      const whereClause: any = {};
+      if (status && ['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
+        whereClause.approvalStatus = status;
+      }
+
+      const routes = await Route.findAll({
+        where: whereClause,
+        include: [{ model: Route.sequelize?.models?.BusCompany, as: 'company', attributes: ['companyId', 'companyName'] }],
+        order: [['createdAt', 'DESC']],
+      });
+
+      successResponse(res, 200, routes);
+    } catch (error: any) {
+      errorResponse(res, 500, error.message);
+    }
+  },
+
+  /**
+   * POST /api/admin/routes/:id/approve
+   */
+  async approveRoute(req: AuthenticatedRequest, res: any): Promise<void> {
+    try {
+      if (req.user?.role !== 'ADMIN') {
+        forbiddenResponse(res, 'Only admins can approve routes');
+        return;
+      }
+
+      const route = await Route.findByPk(req.params?.id);
+      if (!route) {
+        notFoundResponse(res, 'Route');
+        return;
+      }
+
+      route.approvalStatus = 'APPROVED';
+      route.rejectionReason = null;
+      await route.save();
+
+      successResponse(res, 200, route, 'Route approved successfully');
+    } catch (error: any) {
+      errorResponse(res, 500, error.message);
+    }
+  },
+
+  /**
+   * POST /api/admin/routes/:id/reject
+   * Body: { reason?: string }
+   */
+  async rejectRoute(req: AuthenticatedRequest, res: any): Promise<void> {
+    try {
+      if (req.user?.role !== 'ADMIN') {
+        forbiddenResponse(res, 'Only admins can reject routes');
+        return;
+      }
+
+      const route = await Route.findByPk(req.params?.id);
+      if (!route) {
+        notFoundResponse(res, 'Route');
+        return;
+      }
+
+      const reason = (req.body as any)?.reason;
+      route.approvalStatus = 'REJECTED';
+      route.rejectionReason = typeof reason === 'string' && reason.trim() ? reason.trim() : null;
+      await route.save();
+
+      successResponse(res, 200, route, 'Route rejected');
     } catch (error: any) {
       errorResponse(res, 500, error.message);
     }

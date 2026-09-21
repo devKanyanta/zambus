@@ -7,6 +7,8 @@ import {
 import { sequelize } from '../config/database';
 import { BusCompany } from './BusCompany';
 
+type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
 interface RouteAttributes {
   routeId: string;
   companyId: string;
@@ -15,11 +17,13 @@ interface RouteAttributes {
   destination: string;
   intermediateStops: string[];
   estimatedTravelTime: number | null;
+  approvalStatus: ApprovalStatus;
+  rejectionReason?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface RouteCreationAttributes extends Optional<RouteAttributes, 'routeId' | 'intermediateStops' | 'estimatedTravelTime' | 'createdAt'> {}
+interface RouteCreationAttributes extends Optional<RouteAttributes, 'routeId' | 'intermediateStops' | 'estimatedTravelTime' | 'approvalStatus' | 'rejectionReason' | 'createdAt'> {}
 
 class Route extends Model<RouteAttributes, RouteCreationAttributes> implements RouteAttributes {
   public routeId!: string;
@@ -29,6 +33,8 @@ class Route extends Model<RouteAttributes, RouteCreationAttributes> implements R
   public destination!: string;
   public intermediateStops!: string[];
   public estimatedTravelTime!: number | null;
+  public approvalStatus!: ApprovalStatus;
+  public rejectionReason?: string | null;
   public createdAt!: Date;
 
   public static associations: {
@@ -70,6 +76,13 @@ Route.init(
     },
     estimatedTravelTime: {
       type: DataTypes.INTEGER,
+    },
+    approvalStatus: {
+      type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'),
+      defaultValue: 'PENDING',
+    },
+    rejectionReason: {
+      type: DataTypes.STRING(255),
     },
   },
   {

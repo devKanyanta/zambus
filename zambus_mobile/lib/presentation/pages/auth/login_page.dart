@@ -33,9 +33,9 @@ class _LoginPageState extends State<LoginPage> {
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthCubit>().login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
     }
   }
 
@@ -50,7 +50,10 @@ class _LoginPageState extends State<LoginPage> {
           );
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
           );
         }
       },
@@ -59,46 +62,58 @@ class _LoginPageState extends State<LoginPage> {
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Logo
+                    // Logo hero
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 84,
+                      height: 84,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.primary, Color(0xFF123B96)],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.35),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
                       child: const Icon(
-                        Icons.directions_bus,
-                        size: 40,
+                        Icons.directions_bus_rounded,
+                        size: 42,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
                     const Text(
-                      AppStrings.appName,
+                      'Welcome back',
                       style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
+                        letterSpacing: -0.5,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     const Text(
-                      AppStrings.appTagline,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                      'Sign in to continue to ZamBus',
+                      style: TextStyle(fontSize: 14.5, color: AppColors.textSecondary),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 36),
 
-                    // Email
                     AppInput(
                       label: AppStrings.email,
                       hint: 'you@example.com',
@@ -109,7 +124,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Password
                     AppInput(
                       label: AppStrings.password,
                       controller: _passwordController,
@@ -118,7 +132,9 @@ class _LoginPageState extends State<LoginPage> {
                       prefix: const Icon(Icons.lock_outline, size: 20),
                       suffix: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                           size: 20,
                         ),
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -126,36 +142,28 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 28),
 
-                    // Login button
                     BlocBuilder<AuthCubit, AuthState>(
                       builder: (context, state) {
                         return AppButton(
                           label: AppStrings.login,
                           onPressed: _handleLogin,
                           isLoading: state is AuthLoading,
-                          icon: Icons.login,
+                          icon: Icons.login_rounded,
                         );
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
 
-                    // Register link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           AppStrings.noAccount,
-                          style: TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pushNamed(context, AppRouter.register),
-                          child: const Text(
-                            AppStrings.signUp,
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          child: const Text(AppStrings.signUp),
                         ),
                       ],
                     ),

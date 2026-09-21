@@ -149,10 +149,22 @@ export const tripController = {
         return;
       }
 
+      // Only admin-approved buses can be scheduled.
+      if (bus.approvalStatus !== 'APPROVED') {
+        errorResponse(res, 400, 'This bus is awaiting admin approval and cannot be scheduled yet');
+        return;
+      }
+
       const Route = (await import('../models')).Route;
       const route = await Route.findOne({ where: { routeId, companyId: busCompany.companyId } });
       if (!route) {
         errorResponse(res, 400, 'Route not found or not owned by operator');
+        return;
+      }
+
+      // Only admin-approved routes can be scheduled.
+      if (route.approvalStatus !== 'APPROVED') {
+        errorResponse(res, 400, 'This route is awaiting admin approval and cannot be scheduled yet');
         return;
       }
 

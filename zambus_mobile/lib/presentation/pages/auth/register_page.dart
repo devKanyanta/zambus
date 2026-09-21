@@ -81,20 +81,37 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.primary, Color(0xFF123B96)],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: const Icon(Icons.directions_bus_rounded,
+                          size: 32, color: Colors.white),
+                    ),
+                    const SizedBox(height: 20),
                     const Text(
                       'Create your account',
                       style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
+                        letterSpacing: -0.4,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     const Text(
                       'Join ZamBus and start traveling',
                       style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
 
                     AppInput(
                       label: AppStrings.fullName,

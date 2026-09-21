@@ -76,6 +76,50 @@ class Formatters {
     }
   }
 
+  static String formatRole(String? role) {
+    if (role == null) return 'Unknown';
+    switch (role) {
+      case 'PASSENGER':
+        return 'Passenger';
+      case 'DRIVER':
+        return 'Driver';
+      case 'OPERATOR':
+        return 'Operator';
+      case 'ADMIN':
+        return 'Admin';
+      default:
+        return role;
+    }
+  }
+
+  static String formatMaintenanceStatus(String? status) {
+    if (status == null) return 'Unknown';
+    switch (status) {
+      case 'OPERATIONAL':
+        return 'Operational';
+      case 'MAINTENANCE':
+        return 'In Maintenance';
+      case 'OUT_OF_SERVICE':
+        return 'Out of Service';
+      default:
+        return status;
+    }
+  }
+
+  static String formatApprovalStatus(String? status) {
+    if (status == null) return 'Unknown';
+    switch (status) {
+      case 'PENDING':
+        return 'Pending';
+      case 'APPROVED':
+        return 'Approved';
+      case 'REJECTED':
+        return 'Rejected';
+      default:
+        return status;
+    }
+  }
+
   static String formatTripStatus(String? status) {
     if (status == null) return 'Unknown';
     switch (status) {

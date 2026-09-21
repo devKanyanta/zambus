@@ -26,6 +26,8 @@ export interface BusCompanyAttributes {
   updatedAt?: Date;
 }
 
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
 export interface BusAttributes {
   busId: string;
   companyId: string;
@@ -34,6 +36,8 @@ export interface BusAttributes {
   seatCapacity: number;
   amenities: string[];
   maintenanceStatus: 'OPERATIONAL' | 'MAINTENANCE' | 'OUT_OF_SERVICE';
+  approvalStatus: ApprovalStatus;
+  rejectionReason?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -46,6 +50,8 @@ export interface RouteAttributes {
   destination: string;
   intermediateStops: string[];
   estimatedTravelTime?: number;
+  approvalStatus: ApprovalStatus;
+  rejectionReason?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -128,6 +134,8 @@ export async function initModels(): Promise<void> {
     seatCapacity: { type: DataTypes.INTEGER, allowNull: false },
     amenities: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
     maintenanceStatus: { type: DataTypes.ENUM('OPERATIONAL', 'MAINTENANCE', 'OUT_OF_SERVICE'), defaultValue: 'OPERATIONAL' },
+    approvalStatus: { type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'), defaultValue: 'PENDING' },
+    rejectionReason: { type: DataTypes.STRING(255) },
   }, { tableName: 'buses', timestamps: true });
 
   Route = sequelize.define('Route', {
@@ -138,6 +146,8 @@ export async function initModels(): Promise<void> {
     destination: { type: DataTypes.STRING(100), allowNull: false },
     intermediateStops: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
     estimatedTravelTime: { type: DataTypes.INTEGER },
+    approvalStatus: { type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'), defaultValue: 'PENDING' },
+    rejectionReason: { type: DataTypes.STRING(255) },
   }, { tableName: 'routes', timestamps: true });
 
   Trip = sequelize.define('Trip', {

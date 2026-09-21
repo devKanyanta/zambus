@@ -68,9 +68,11 @@ export const routeController = {
         destination,
         intermediateStops,
         estimatedTravelTime,
+        // New routes require admin approval before trips can be scheduled.
+        approvalStatus: 'PENDING',
       });
 
-      successResponse(res, 201, route, 'Route created successfully');
+      successResponse(res, 201, route, 'Route created successfully and is pending admin approval');
     } catch (error: any) {
       errorResponse(res, 400, error.message);
     }
@@ -101,8 +103,19 @@ export const routeController = {
         return;
       }
 
+      // Operators cannot self-approve or change approval fields.
+      delete updates.approvalStatus;
+      delete updates.rejectionReason;
+
       await route.update(updates);
       await route.save();
+
+      // An operator edit of a rejected route resubmits it for admin review.
+      if (!isAdmin && route.approvalStatus === 'REJECTED') {
+        route.approvalStatus = 'PENDING';
+        route.rejectionReason = null;
+        await route.save();
+      }
 
       successResponse(res, 200, route, 'Route updated successfully');
     } catch (error: any) {

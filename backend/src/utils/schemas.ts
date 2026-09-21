@@ -90,6 +90,11 @@ export const updateUserRoleSchema = z.object({
   role: z.enum(['PASSENGER', 'DRIVER', 'OPERATOR', 'ADMIN']),
 });
 
+// Optional reason sent when an admin rejects a bus/route/company
+export const reviewSchema = z.object({
+  reason: z.string().max(255).optional(),
+});
+
 export const updateCommissionSchema = z.object({
   commissionRate: z.number().min(0).max(1),
 });

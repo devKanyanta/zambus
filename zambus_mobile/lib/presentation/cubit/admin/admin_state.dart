@@ -21,16 +21,94 @@ class PendingCompaniesLoaded extends AdminState {
   List<Object?> get props => [companies];
 }
 
+/// Combined review queue for the Admin Approvals page: pending companies,
+/// buses awaiting review, and routes awaiting review.
+class ReviewQueueLoaded extends AdminState {
+  final List<dynamic> companies;
+  final List<Bus> pendingBuses;
+  final List<Route> pendingRoutes;
+
+  const ReviewQueueLoaded({
+    required this.companies,
+    required this.pendingBuses,
+    required this.pendingRoutes,
+  });
+
+  int get totalPending => companies.length + pendingBuses.length + pendingRoutes.length;
+
+  @override
+  List<Object?> get props => [companies, pendingBuses, pendingRoutes];
+}
+
+class BusesReviewLoading extends AdminState {}
+
+class BusesReviewLoaded extends AdminState {
+  final List<Bus> buses;
+
+  const BusesReviewLoaded(this.buses);
+
+  @override
+  List<Object?> get props => [buses];
+}
+
+class RoutesReviewLoading extends AdminState {}
+
+class RoutesReviewLoaded extends AdminState {
+  final List<Route> routes;
+
+  const RoutesReviewLoaded(this.routes);
+
+  @override
+  List<Object?> get props => [routes];
+}
+
+class BusApproved extends AdminState {
+  final String busId;
+
+  const BusApproved(this.busId);
+
+  @override
+  List<Object?> get props => [busId];
+}
+
+class BusRejected extends AdminState {
+  final String busId;
+
+  const BusRejected(this.busId);
+
+  @override
+  List<Object?> get props => [busId];
+}
+
+class RouteApproved extends AdminState {
+  final String routeId;
+
+  const RouteApproved(this.routeId);
+
+  @override
+  List<Object?> get props => [routeId];
+}
+
+class RouteRejected extends AdminState {
+  final String routeId;
+
+  const RouteRejected(this.routeId);
+
+  @override
+  List<Object?> get props => [routeId];
+}
+
 class AllUsersLoading extends AdminState {}
 
 class AllUsersLoaded extends AdminState {
   final List<User> users;
   final int total;
+  final String? activeRoleFilter;
 
-  const AllUsersLoaded(this.users, this.total);
+  const AllUsersLoaded(this.users, this.total, {this.activeRoleFilter});
 
   @override
-  List<Object?> get props => [users, total];
+  List<Object?> get props => [users, total, activeRoleFilter];
 }
 
 class AnalyticsLoading extends AdminState {}

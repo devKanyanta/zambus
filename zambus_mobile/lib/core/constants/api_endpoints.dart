@@ -44,6 +44,12 @@ class ApiEndpoints {
   static const String adminCompaniesPending = '/admin/companies/pending';
   static const String adminCompanyApprove = '/admin/companies/:id/approve';
   static const String adminCompanyReject = '/admin/companies/:id/reject';
+  static const String adminBuses = '/admin/buses';
+  static const String adminBusApprove = '/admin/buses/:id/approve';
+  static const String adminBusReject = '/admin/buses/:id/reject';
+  static const String adminRoutes = '/admin/routes';
+  static const String adminRouteApprove = '/admin/routes/:id/approve';
+  static const String adminRouteReject = '/admin/routes/:id/reject';
   static const String adminUsers = '/admin/users';
   static const String adminUserRole = '/admin/users/:id/role';
   static const String adminAnalytics = '/admin/analytics';

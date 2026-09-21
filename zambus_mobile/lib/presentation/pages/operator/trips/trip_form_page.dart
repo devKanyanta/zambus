@@ -118,30 +118,53 @@ class _TripFormViewState extends State<_TripFormView> {
         List<models.Bus> buses = [];
         List<models.User> drivers = [];
         if (state is OperatorDataLoaded) {
-          routes = state.routes;
-          buses = state.buses;
+          // Only admin-approved buses and routes can be scheduled.
+          routes = state.routes.where((r) => r.isApproved).toList();
+          buses = state.buses.where((b) => b.isApproved && b.isOperational).toList();
           drivers = state.drivers;
         }
 
-        final isCreating = false; // Create is instant; errors surface in listener
+        final hasApprovedResources = routes.isNotEmpty && buses.isNotEmpty;
 
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(title: const Text('Create Trip')),
-          body: routes.isEmpty && buses.isEmpty
+          body: !hasApprovedResources
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('You need at least one route and one bus first'),
-                      const SizedBox(height: 16),
-                      AppButton(
-                        label: 'Reload',
-                        onPressed: () => context.read<OperatorCubit>().loadAll(),
-                        variant: AppButtonVariant.outline,
-                        isExpanded: false,
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: const BoxDecoration(
+                            color: AppColors.surfaceVariant,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.approval_outlined, size: 44, color: AppColors.textHint),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'No approved buses or routes',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Trips can only be scheduled with admin-approved buses and routes. Add them in Fleet and Routes, then wait for approval.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.4),
+                        ),
+                        const SizedBox(height: 20),
+                        AppButton(
+                          label: 'Reload',
+                          onPressed: () => context.read<OperatorCubit>().loadAll(),
+                          variant: AppButtonVariant.outline,
+                          isExpanded: false,
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : SingleChildScrollView(
@@ -173,7 +196,7 @@ class _TripFormViewState extends State<_TripFormView> {
                           value: _selectedBus,
                           isExpanded: true,
                           decoration: _dropdownDecoration('Select bus'),
-                          items: buses.where((b) => b.isOperational).map((b) {
+                          items: buses.map((b) {
                             return DropdownMenuItem(
                               value: b,
                               child: Text('${b.registrationNumber} - ${b.model} (${b.seatCapacity} seats)', overflow: TextOverflow.ellipsis),
@@ -243,7 +266,7 @@ class _TripFormViewState extends State<_TripFormView> {
 
                         AppButton(
                           label: 'Create Trip',
-                          onPressed: isCreating ? null : _submit,
+                          onPressed: _submit,
                           icon: Icons.add_circle_outline,
                         ),
                       ],
