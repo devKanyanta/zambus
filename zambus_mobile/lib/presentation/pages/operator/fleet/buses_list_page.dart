@@ -142,7 +142,9 @@ class _BusCard extends StatelessWidget {
             const SizedBox(height: 14),
             Row(
               children: [
-                _BusMeta(icon: Icons.event_seat, text: '${bus.seatCapacity} seats'),
+                Expanded(
+                  child: _BusMeta(icon: Icons.event_seat, text: '${bus.seatCapacity} seats'),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _BusMeta(

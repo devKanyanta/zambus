@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../data/models/user_model.dart';
 import '../../presentation/pages/splash/splash_page.dart';
 import '../../presentation/pages/auth/login_page.dart';
 import '../../presentation/pages/auth/register_page.dart';
@@ -92,8 +91,7 @@ class AppRouter {
       case '/driver/emergency':
         return _buildRoute(const EmergencyPage(), settings);
       case '/driver/dropoff':
-        final tripId = settings.arguments as String? ?? '';
-        return _buildRoute(DropoffAlertsPage(tripId: tripId), settings);
+        return _buildRoute(const DropoffAlertsPage(), settings);
 
       // Operator routes
       case '/operator/buses':

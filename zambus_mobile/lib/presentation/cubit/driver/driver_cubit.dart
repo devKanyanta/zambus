@@ -9,6 +9,17 @@ class DriverCubit extends Cubit<DriverState> {
 
   String? _lastTripId;
 
+  /// Loads the trips assigned to the currently logged-in driver.
+  Future<void> loadMyTrips() async {
+    try {
+      emit(MyTripsLoading());
+      final trips = await _datasource.getMyAssignedTrips();
+      emit(MyTripsLoaded(trips));
+    } catch (e) {
+      emit(DriverError(ErrorMessages.from(e)));
+    }
+  }
+
   Future<void> loadManifest(String tripId) async {
     try {
       _lastTripId = tripId;

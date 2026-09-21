@@ -170,6 +170,16 @@ class ApiDatasource {
     return tripsData.map((e) => Trip.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  /// Trips assigned to the currently logged-in driver (driver app).
+  Future<List<Trip>> getMyAssignedTrips() async {
+    final response = await _apiClient.get(ApiEndpoints.myAssignedTrips);
+    final data = response.data;
+    if (data is List) {
+      return data.map((e) => Trip.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return [];
+  }
+
   Future<Trip> getTripById(String id) async {
     final path = _apiClient.replacePathParams(ApiEndpoints.tripById, {'id': id});
     final response = await _apiClient.get(path);

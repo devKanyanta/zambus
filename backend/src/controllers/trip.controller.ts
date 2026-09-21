@@ -56,6 +56,37 @@ export async function getTripSeats(req: AuthenticatedRequest, res: any): Promise
 }
 
 /**
+ * GET /api/trips/my/assigned
+ * Lists trips assigned to the currently logged-in driver, newest first.
+ * Used by the driver app so the driver can pick their trip instead of
+ * typing a raw trip ID. Must be declared BEFORE the /:id route so 'my'
+ * is not parsed as a trip id.
+ */
+export async function getMyAssignedTrips(req: AuthenticatedRequest, res: any): Promise<void> {
+  try {
+    const driverId = req.user?.userId;
+    if (!driverId) {
+      errorResponse(res, 401, 'Driver authentication required');
+      return;
+    }
+
+    const trips = await Trip.findAll({
+      where: { driverId } as any,
+      include: [
+        { model: (await import('../models')).Bus, as: 'bus', attributes: ['busId', 'registrationNumber', 'model', 'seatCapacity'] },
+        { model: (await import('../models')).Route, as: 'route', attributes: ['routeId', 'routeName', 'origin', 'destination'] },
+      ],
+      order: [['departureTime', 'DESC']],
+      limit: 50,
+    });
+
+    successResponse(res, 200, trips);
+  } catch (error: any) {
+    errorResponse(res, 500, error.message);
+  }
+}
+
+/**
  * GET /api/trips/drivers
  * Lists all active DRIVER accounts. Used by operators when assigning a driver
  * to a new trip. Must be declared BEFORE the /:id route.

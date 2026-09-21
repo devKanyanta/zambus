@@ -10,6 +10,19 @@ abstract class DriverState extends Equatable {
 
 class DriverInitial extends DriverState {}
 
+/// Emitted while fetching the trips assigned to the logged-in driver.
+class MyTripsLoading extends DriverState {}
+
+/// The logged-in driver's assigned trips.
+class MyTripsLoaded extends DriverState {
+  final List<Trip> trips;
+
+  const MyTripsLoaded(this.trips);
+
+  @override
+  List<Object?> get props => [trips];
+}
+
 class ManifestLoading extends DriverState {}
 
 class ManifestLoaded extends DriverState {

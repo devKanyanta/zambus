@@ -16,6 +16,7 @@ class ApiEndpoints {
   // Trips
   static const String trips = '/trips';
   static const String drivers = '/trips/drivers';
+  static const String myAssignedTrips = '/trips/my/assigned';
   static const String tripById = '/trips/:id';
   static const String tripSeats = '/trips/:id/seats';
   static const String tripManifest = '/trips/:id/manifest';

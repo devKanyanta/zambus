@@ -7,14 +7,28 @@ import '../../cubit/driver/driver_state.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_input.dart';
 
-class EmergencyPage extends StatefulWidget {
+/// Emergency report. Provides its own [DriverCubit] because the page is
+/// pushed as a separate route, outside DriverHome's BlocProvider.
+class EmergencyPage extends StatelessWidget {
   const EmergencyPage({super.key});
 
   @override
-  State<EmergencyPage> createState() => _EmergencyPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<DriverCubit>(),
+      child: const _EmergencyView(),
+    );
+  }
 }
 
-class _EmergencyPageState extends State<EmergencyPage> {
+class _EmergencyView extends StatefulWidget {
+  const _EmergencyView();
+
+  @override
+  State<_EmergencyView> createState() => _EmergencyViewState();
+}
+
+class _EmergencyViewState extends State<_EmergencyView> {
   String _selectedType = '';
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();

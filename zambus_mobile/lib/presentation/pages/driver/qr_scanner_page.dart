@@ -6,17 +6,30 @@ import '../../../injection_container.dart';
 import '../../cubit/driver/driver_cubit.dart';
 import '../../cubit/driver/driver_state.dart';
 
-class QrScannerPage extends StatefulWidget {
+/// QR ticket scanner. Provides its own [DriverCubit] because the page is
+/// pushed as a separate route, outside DriverHome's BlocProvider.
+class QrScannerPage extends StatelessWidget {
   const QrScannerPage({super.key});
 
   @override
-  State<QrScannerPage> createState() => _QrScannerPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<DriverCubit>(),
+      child: const _QrScannerView(),
+    );
+  }
 }
 
-class _QrScannerPageState extends State<QrScannerPage> {
+class _QrScannerView extends StatefulWidget {
+  const _QrScannerView();
+
+  @override
+  State<_QrScannerView> createState() => _QrScannerViewState();
+}
+
+class _QrScannerViewState extends State<_QrScannerView> {
   MobileScannerController? _cameraController;
   bool _isProcessing = false;
-  String? _lastResult;
 
   @override
   void initState() {
@@ -37,7 +50,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
     setState(() {
       _isProcessing = true;
-      _lastResult = barcode.rawValue;
     });
 
     context.read<DriverCubit>().scanTicket(barcode.rawValue!);

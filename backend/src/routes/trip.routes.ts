@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { tripController } from '../controllers';
-import { getTripSeats, getDrivers } from '../controllers/trip.controller';
+import { getTripSeats, getDrivers, getMyAssignedTrips } from '../controllers/trip.controller';
 import { validate, validateParams, validateQuery } from '../middleware/validation';
 import { authenticate, authorize, AuthenticatedRequest } from '../middleware/auth';
 import { createTripSchema, updateTripSchema, tripActionSchema, searchTripsSchema } from '../utils/schemas';
@@ -13,6 +13,9 @@ router.get('/', tripController.searchPublic.bind(tripController));
 
 // Driver list for trip assignment (before /:id so 'drivers' is not parsed as an id)
 router.get('/drivers', getDrivers);
+
+// Trips assigned to the logged-in driver (before /:id so 'my' is not parsed as an id)
+router.get('/my/assigned', authenticate, authorize('DRIVER'), getMyAssignedTrips);
 
 // Protected routes
 router.get('/search', authenticate, validateQuery(searchTripsSchema), tripController.searchPublic.bind(tripController));
