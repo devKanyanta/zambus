@@ -105,28 +105,7 @@ class _RevenueView extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    const SectionHeader(title: 'Platform Metrics'),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: StatCard(
-                            label: 'Users',
-                            value: '${a.totalUsers}',
-                            icon: Icons.people_outline,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: StatCard(
-                            label: 'Operators',
-                            value: '${a.totalOperators}',
-                            icon: Icons.business_outlined,
-                            color: AppColors.secondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
+                    const SectionHeader(title: 'Company Metrics'),
                     Row(
                       children: [
                         Expanded(
@@ -140,10 +119,31 @@ class _RevenueView extends StatelessWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: StatCard(
-                            label: 'Bookings',
+                            label: 'Confirmed Bookings',
                             value: '${a.totalBookings}',
                             icon: Icons.confirmation_num_outlined,
                             color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: StatCard(
+                            label: 'Buses',
+                            value: '${a.totalBuses}',
+                            icon: Icons.airline_seat_recline_normal_outlined,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: StatCard(
+                            label: 'Routes',
+                            value: '${a.totalRoutes}',
+                            icon: Icons.route_outlined,
+                            color: AppColors.secondary,
                           ),
                         ),
                       ],

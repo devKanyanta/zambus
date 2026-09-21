@@ -313,11 +313,99 @@ export const adminController = {
 
   async getAnalytics(req: AuthenticatedRequest, res: any): Promise<void> {
     try {
-      // Admins see platform-wide metrics; operators see the same shape for their
-      // revenue dashboard. (Operated-company scoping can be added in Phase 2.)
+      // Admins see platform-wide metrics; operators get the same shape but
+      // scoped to their own company for their revenue dashboard.
       const role = req.user?.role;
       if (role !== 'ADMIN' && role !== 'OPERATOR') {
         forbiddenResponse(res, 'Not authorized to view analytics');
+        return;
+      }
+
+      // Operator branch: everything scoped to the operator's company.
+      if (role === 'OPERATOR') {
+        const operatorId = req.user?.userId;
+        const company = await BusCompany.findOne({ where: { operatorId } });
+        if (!company) {
+          errorResponse(res, 400, 'Operator must have a bus company to view analytics');
+          return;
+        }
+
+        const companyId = company.companyId;
+
+        const totalBuses = await Bus.count({ where: { companyId } });
+        const totalRoutes = await Route.count({ where: { companyId } });
+        const totalActiveTrips = await Trip.count({
+          where: { status: { [Op.notIn]: ['COMPLETED', 'CANCELLED'] } },
+          include: [{
+            model: (await import('../models')).Bus,
+            as: 'bus',
+            attributes: [],
+            required: true,
+          }],
+        });
+        const totalBookings = await Booking.count({
+          where: { paymentStatus: 'CONFIRMED' },
+          include: [{
+            model: (await import('../models')).Trip,
+            as: 'trip',
+            attributes: [],
+            required: true,
+            include: [{
+              model: (await import('../models')).Bus,
+              as: 'bus',
+              attributes: [],
+              required: true,
+            }],
+          }],
+        });
+
+        // fareAmount lives on Trip, not Booking - join through the trip association.
+        const revenueResult = await Booking.findAll({
+          attributes: [[sequelize.fn('SUM', sequelize.col('trip.fareAmount')), 'totalRevenue']],
+          where: { paymentStatus: 'CONFIRMED' },
+          include: [
+            {
+              model: (await import('../models')).Trip,
+              as: 'trip',
+              attributes: [],
+              required: true,
+              include: [{
+                model: (await import('../models')).Bus,
+                as: 'bus',
+                attributes: [],
+                required: true,
+              }],
+            },
+          ],
+          raw: true,
+        });
+
+        const totalRevenueNum =
+          revenueResult.length > 0 && revenueResult[0]
+            ? Number((revenueResult[0] as any).totalRevenue) || 0
+            : 0;
+
+        // Read commission rate from DB (persisted), fallback to config
+        let commissionRate = config.app.commissionRate;
+        try {
+          const settings = await CommissionSettings.findOne();
+          if (settings) commissionRate = Number(settings.commissionRate);
+        } catch { /* table may not exist yet */ }
+
+        const commissionAmount = totalRevenueNum * commissionRate;
+
+        successResponse(res, 200, {
+          totalUsers: 0,
+          totalOperators: 1,
+          totalBuses,
+          totalRoutes,
+          totalActiveTrips,
+          totalBookings,
+          totalRevenue: totalRevenueNum,
+          commissionRate,
+          commissionAmount,
+          netPayout: totalRevenueNum - commissionAmount,
+        });
         return;
       }
 

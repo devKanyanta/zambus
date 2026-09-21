@@ -23,7 +23,9 @@ router.post('/companies/:id/reject', authenticate, authorize('ADMIN'), validateP
 router.get('/users', authenticate, authorize('ADMIN'), adminController.getAllUsers.bind(adminController));
 router.put('/users/:id/role', authenticate, authorize('ADMIN'), validate(updateUserRoleSchema), adminController.updateUserRole.bind(adminController));
 
-router.get('/analytics', authenticate, authorize('ADMIN'), adminController.getAnalytics.bind(adminController));
+// Operators get company-scoped analytics for their revenue dashboard;
+// admins get platform-wide metrics (the controller scopes by role).
+router.get('/analytics', authenticate, authorize('ADMIN', 'OPERATOR'), adminController.getAnalytics.bind(adminController));
 router.put('/settings/commission', authenticate, authorize('ADMIN'), validate(updateCommissionSchema), adminController.updateCommission.bind(adminController));
 
 // Platform settings

@@ -25,12 +25,19 @@ jest.mock('../src/models', () => ({
   BusCompany: {
     findAll: jest.fn(),
     findByPk: jest.fn(),
+    findOne: jest.fn(),
   },
   User: {
     count: jest.fn(),
     findAndCountAll: jest.fn(),
   },
   Trip: {
+    count: jest.fn(),
+  },
+  Bus: {
+    count: jest.fn(),
+  },
+  Route: {
     count: jest.fn(),
   },
   Booking: {
@@ -91,6 +98,51 @@ describe('Admin Controller', () => {
       const { adminController } = require('../src/controllers/admin.controller');
 
       const req = mockReq({ userId: 'user-001', role: 'PASSENGER' });
+      const res = mockRes();
+
+      await adminController.getAnalytics(req, res);
+
+      expect(res.json).toHaveBeenCalled();
+      const response = res.json.mock.calls[0][0];
+      expect(response.success).toBe(false);
+    });
+
+    it('should return company-scoped analytics for operators', async () => {
+      const { adminController } = require('../src/controllers/admin.controller');
+      const { BusCompany, Bus, Route, Trip, Booking, CommissionSettings } = require('../src/models');
+
+      BusCompany.findOne.mockResolvedValue({ companyId: 'company-001' });
+      Bus.count.mockResolvedValue(4);
+      Route.count.mockResolvedValue(6);
+      Trip.count.mockResolvedValue(3);
+      Booking.count.mockResolvedValue(12);
+      Booking.findAll.mockResolvedValue([{ totalRevenue: '8000.00' }]);
+      CommissionSettings.findOne.mockResolvedValue({ commissionRate: 0.10 });
+
+      const req = mockReq({ userId: 'operator-001', role: 'OPERATOR' });
+      const res = mockRes();
+
+      await adminController.getAnalytics(req, res);
+
+      expect(res.json).toHaveBeenCalled();
+      const response = res.json.mock.calls[0][0];
+      expect(response.success).toBe(true);
+      expect(response.data.totalBuses).toBe(4);
+      expect(response.data.totalRoutes).toBe(6);
+      expect(response.data.totalActiveTrips).toBe(3);
+      expect(response.data.totalBookings).toBe(12);
+      expect(response.data.totalRevenue).toBe(8000);
+      expect(response.data.commissionAmount).toBe(800);
+      expect(response.data.netPayout).toBe(7200);
+    });
+
+    it('should error when operator has no company', async () => {
+      const { adminController } = require('../src/controllers/admin.controller');
+      const { BusCompany } = require('../src/models');
+
+      BusCompany.findOne.mockResolvedValue(null);
+
+      const req = mockReq({ userId: 'operator-002', role: 'OPERATOR' });
       const res = mockRes();
 
       await adminController.getAnalytics(req, res);
