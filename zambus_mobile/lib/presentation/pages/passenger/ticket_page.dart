@@ -8,6 +8,7 @@ import '../../cubit/passenger/passenger_state.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/error_display.dart';
 import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/common/ui.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/models.dart';
 
@@ -65,19 +66,15 @@ class _TicketView extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
+          // ── Ticket card ──────────────────────────────────────────────
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppColors.cardShadow,
             ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
                 // Header
@@ -85,82 +82,180 @@ class _TicketView extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.primary, AppColors.primaryDark],
+                    ),
                   ),
-                  child: const Column(
+                  child: Row(
                     children: [
-                      Text(
-                        'ZAMBUS',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 2,
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.directions_bus, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'ZAMBUS',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 2.5,
+                              ),
+                            ),
+                            Text(
+                              'BOARDING PASS',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white.withValues(alpha: 0.75),
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        'E-TICKET',
+                      if (trip != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              Formatters.formatDisplayDate(trip.departureTime!),
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                            ),
+                            Text(
+                              Formatters.formatDisplayTime(trip.departureTime!),
+                              style: TextStyle(
+                                  fontSize: 11, color: Colors.white.withValues(alpha: 0.75)),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Route strip
+                if (trip != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            trip.origin ?? '—',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward, size: 16, color: AppColors.textHint),
+                        Expanded(
+                          child: Text(
+                            trip.destination ?? '—',
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Perforation
+                _TicketPerforation(),
+
+                // QR panel
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: QrImageView(
+                          data: booking.qrCodeData,
+                          version: QrVersions.auto,
+                          size: 190,
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Show this code to the conductor for scanning',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white70,
-                          letterSpacing: 1,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                // Body
+                const Divider(height: 1),
+
+                // Details
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      if (trip != null) ...[
-                        _row('Route', trip.routeDisplay),
-                        const Divider(height: 24),
-                        _row('Departure', trip.departureTime != null ? Formatters.formatDisplayDateTime(trip.departureTime!) : 'N/A'),
-                        const Divider(height: 24),
-                        _row('Bus', [trip.busReg, trip.busModel].whereType<String>().join(' - ')),
-                        const Divider(height: 24),
-                      ],
-                      _row('Passenger', passengerName ?? 'You'),
-                      const Divider(height: 24),
-                      _row('Seat', '${booking.seatNumber}'),
-                      const Divider(height: 24),
+                      if (trip != null)
+                        InfoRow(
+                          icon: Icons.directions_bus_outlined,
+                          label: 'Bus',
+                          value: [trip.busReg, trip.busModel].whereType<String>().join(' · '),
+                        ),
+                      if (trip != null) const Divider(height: 16),
+                      InfoRow(icon: Icons.person_outline, label: 'Passenger', value: passengerName ?? 'You'),
+                      const Divider(height: 16),
+                      InfoRow(icon: Icons.event_seat_outlined, label: 'Seat', value: '${booking.seatNumber}'),
+                      const Divider(height: 16),
                       if (trip?.fareAmount != null) ...[
-                        _row('Fare', Formatters.formatCurrency(trip!.fareAmount!)),
-                        const Divider(height: 24),
+                        InfoRow(
+                            icon: Icons.attach_money, label: 'Fare', value: Formatters.formatCurrency(trip!.fareAmount!)),
+                        const Divider(height: 16),
                       ],
-                      const Divider(height: 24),
-                      _row('Ticket ID', booking.bookingId.substring(0, 8).toUpperCase()),
-                      const Divider(height: 24),
-                      _row('Payment', Formatters.formatPaymentStatus(booking.paymentStatus)),
-                      const Divider(height: 24),
-                      _row('Status', Formatters.formatBoardingStatus(booking.boardingStatus)),
-                      const SizedBox(height: 24),
-
-                      // QR code - contains the exact ticket payload the
-                      // conductor's scanner validates against the backend.
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: QrImageView(
-                          data: booking.qrCodeData,
-                          version: QrVersions.auto,
-                          size: 180,
-                          backgroundColor: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Show this ticket to the conductor for scanning',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      InfoRow(
+                          icon: Icons.badge_outlined,
+                          label: 'Ticket ID',
+                          value: booking.bookingId.substring(0, 8).toUpperCase()),
+                      const Divider(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Payment', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                                const SizedBox(height: 4),
+                                StatusBadge(label: Formatters.formatPaymentStatus(booking.paymentStatus).toUpperCase()),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Status', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                                const SizedBox(height: 4),
+                                StatusBadge(label: Formatters.formatBoardingStatus(booking.boardingStatus).toUpperCase()),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -226,20 +321,46 @@ class _TicketView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _row(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-        Flexible(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-            textAlign: TextAlign.end,
-          ),
-        ),
-      ],
+/// Dashed divider with side notches, mimicking a tear-off ticket edge.
+class _TicketPerforation extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 24,
+      child: CustomPaint(
+        size: Size.infinite,
+        painter: _PerforationPainter(),
+      ),
     );
   }
+}
+
+class _PerforationPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.border
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    // Dashed line
+    const dashWidth = 8.0;
+    const dashGap = 5.0;
+    double x = 0;
+    final y = size.height / 2;
+    while (x < size.width) {
+      canvas.drawLine(Offset(x, y), Offset(x + dashWidth, y), paint);
+      x += dashWidth + dashGap;
+    }
+
+    // Side notches (half circles cut into the edges)
+    final notchPaint = Paint()..color = AppColors.background;
+    canvas.drawCircle(Offset(0, y), 10, notchPaint);
+    canvas.drawCircle(Offset(size.width, y), 10, notchPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

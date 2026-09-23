@@ -8,6 +8,7 @@ import '../../cubit/passenger/passenger_cubit.dart';
 import '../../cubit/passenger/passenger_state.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/auth_listener.dart';
+import '../../widgets/common/ui.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/formatters.dart';
 
@@ -98,7 +99,7 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
           backgroundColor: AppColors.surface,
           indicatorColor: AppColors.primary.withValues(alpha: 0.1),
           destinations: const [
-            NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search, color: AppColors.primary), label: 'Search'),
+            NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search, color: AppColors.primary), label: 'Search'),
             NavigationDestination(icon: Icon(Icons.confirmation_num_outlined), selectedIcon: Icon(Icons.confirmation_num, color: AppColors.primary), label: 'Bookings'),
             NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Profile'),
           ],
@@ -108,48 +109,53 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
   }
 
   Widget _buildSearchTab() {
-    // The header keeps its primary color behind the status bar, so its
-    // content padding adds the status-bar height to stay in the safe area.
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(20, statusBarHeight + 20, 20, 30),
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Where are you going?',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Search and book your next trip',
-                  style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.8)),
-                ),
-                const SizedBox(height: 20),
-                _buildSearchField('From', _originController, Icons.circle_outlined),
-                const SizedBox(height: 12),
-                _buildSearchField('To', _destinationController, Icons.location_on_outlined),
-                const SizedBox(height: 12),
-                _buildDateField(),
-                const SizedBox(height: 16),
-                BlocBuilder<PassengerCubit, PassengerState>(
-                  builder: (context, state) {
-                    return AppButton(
-                      label: 'Search Trips',
-                      onPressed: _searchTrips,
-                      isLoading: state is TripsLoading,
-                      icon: Icons.search,
-                    );
-                  },
-                ),
-              ],
+          child: GradientPageHeader(
+            title: 'Where to today?',
+            subtitle: 'Search and book your next trip',
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: Column(
+                children: [
+                  _buildSearchField('From', _originController, Icons.trip_origin, TextInputAction.next),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 42),
+                        SizedBox(
+                          height: 10,
+                          child: CustomPaint(
+                            size: const Size(14, 10),
+                            painter: _ConnectorPainter(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildSearchField('To', _destinationController, Icons.location_on_outlined, TextInputAction.search),
+                  const SizedBox(height: 12),
+                  _buildDateField(),
+                  const SizedBox(height: 16),
+                  BlocBuilder<PassengerCubit, PassengerState>(
+                    builder: (context, state) {
+                      return AppButton(
+                        label: 'Find Trips',
+                        onPressed: _searchTrips,
+                        isLoading: state is TripsLoading,
+                        icon: Icons.search,
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -158,21 +164,21 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: BlocBuilder<PassengerCubit, PassengerState>(
               builder: (context, state) {
-                if (state is TripsLoaded) {                  if (state.trips.isEmpty) {
+                if (state is TripsLoaded) {
+                  if (state.trips.isEmpty) {
                     return const _SearchMessage(
                       icon: Icons.search_off,
                       title: 'No trips found',
-                      subtitle: 'Try a different route or date.',
+                      subtitle: 'Try a different route, date or filter.',
                     );
                   }
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Available Trips (${state.trips.length})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
+                      SectionHeader(title: 'Available Trips', subtitle: '${state.trips.length} trip${state.trips.length == 1 ? '' : 's'} match your search'),
                       ...state.trips.map((trip) => _TripCard(trip: trip)),
                     ],
                   );
@@ -196,12 +202,11 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Popular Routes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    _QuickRoute(from: 'Lusaka', to: 'Livingstone', onTap: () => _searchRoute('Lusaka', 'Livingstone')),
-                    _QuickRoute(from: 'Lusaka', to: 'Ndola', onTap: () => _searchRoute('Lusaka', 'Ndola')),
-                    _QuickRoute(from: 'Lusaka', to: 'Kitwe', onTap: () => _searchRoute('Lusaka', 'Kitwe')),
-                    _QuickRoute(from: 'Lusaka', to: 'Mongu', onTap: () => _searchRoute('Lusaka', 'Mongu')),
+                    const SectionHeader(title: 'Popular Routes', subtitle: 'Quick searches across Zambia'),
+                    _QuickRoute(from: 'Lusaka', to: 'Livingstone', distance: '485 km', onTap: () => _searchRoute('Lusaka', 'Livingstone')),
+                    _QuickRoute(from: 'Lusaka', to: 'Ndola', distance: '320 km', onTap: () => _searchRoute('Lusaka', 'Ndola')),
+                    _QuickRoute(from: 'Lusaka', to: 'Kitwe', distance: '365 km', onTap: () => _searchRoute('Lusaka', 'Kitwe')),
+                    _QuickRoute(from: 'Lusaka', to: 'Mongu', distance: '590 km', onTap: () => _searchRoute('Lusaka', 'Mongu')),
                   ],
                 );
               },
@@ -220,10 +225,10 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
 
   Widget _buildFilterChips() {
     return SizedBox(
-      height: 48,
+      height: 52,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         children: _filters.entries.map((entry) {
           final selected = _filter == entry.key;
           return Padding(
@@ -232,6 +237,8 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
               label: Text(entry.value),
               selected: selected,
               selectedColor: AppColors.primary,
+              backgroundColor: AppColors.surface,
+              side: BorderSide(color: selected ? AppColors.primary : AppColors.border),
               labelStyle: TextStyle(
                 fontSize: 13,
                 color: selected ? Colors.white : AppColors.textSecondary,
@@ -253,22 +260,27 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: AppColors.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today, color: Colors.white.withValues(alpha: 0.8), size: 20),
+            const Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
             Text(
-              _travelDate != null ? Formatters.formatDisplayDate(_travelDate!) : 'Any date',
-              style: TextStyle(color: Colors.white.withValues(alpha: _travelDate != null ? 1 : 0.6), fontSize: 15),
+              _travelDate != null ? Formatters.formatDisplayDate(_travelDate!) : 'Today',
+              style: TextStyle(
+                color: _travelDate != null ? AppColors.textPrimary : AppColors.textSecondary,
+                fontSize: 15,
+                fontWeight: _travelDate != null ? FontWeight.w600 : FontWeight.w400,
+              ),
             ),
             const Spacer(),
             if (_travelDate != null)
               GestureDetector(
                 onTap: () => setState(() => _travelDate = null),
-                child: Icon(Icons.close, color: Colors.white.withValues(alpha: 0.7), size: 18),
+                child: const Icon(Icons.close, color: AppColors.textHint, size: 18),
               ),
           ],
         ),
@@ -276,18 +288,18 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
     );
   }
 
-  Widget _buildSearchField(String label, TextEditingController controller, IconData icon) {
+  Widget _buildSearchField(String label, TextEditingController controller, IconData icon, TextInputAction action) {
     return TextField(
       controller: controller,
-      textInputAction: TextInputAction.search,
+      textInputAction: action,
       onSubmitted: (_) => _searchTrips(),
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600),
       decoration: InputDecoration(
         hintText: label,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 20),
+        hintStyle: const TextStyle(color: AppColors.textHint, fontWeight: FontWeight.w400),
+        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.15),
+        fillColor: AppColors.surfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -307,29 +319,58 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              const SizedBox(height: 20),
-              Center(
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: Text(
-                    (user?.fullName ?? 'U')[0].toUpperCase(),
-                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
-                  ),
+              const SizedBox(height: 8),
+              // Profile card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        (user?.fullName ?? 'U')[0].toUpperCase(),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.fullName ?? 'User',
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.2),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            user?.email ?? '',
+                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.textSecondary),
+                      onPressed: _showEditProfileDialog,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(user?.fullName ?? 'User', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-              Center(
-                child: Text(user?.email ?? '', style: const TextStyle(color: AppColors.textSecondary)),
-              ),
-              const SizedBox(height: 32),
-              _ProfileTile(icon: Icons.person_outline, title: 'Edit Profile', onTap: _showEditProfileDialog),
-              _ProfileTile(icon: Icons.confirmation_num_outlined, title: 'My Bookings', onTap: () => setState(() => _selectedIndex = 1)),
-              _ProfileTile(icon: Icons.help_outline, title: 'Help & Support', onTap: _showSupportDialog),
-              _ProfileTile(icon: Icons.info_outline, title: 'About ZamBus', onTap: _showAboutDialog),
+              const SizedBox(height: 24),
+
+              const SectionHeader(title: 'Account', subtitle: 'Manage your profile and bookings'),
+              _ProfileTile(icon: Icons.person_outline, title: 'Edit Profile', subtitle: 'Update your name and phone number', onTap: _showEditProfileDialog),
+              _ProfileTile(icon: Icons.confirmation_num_outlined, title: 'My Bookings', subtitle: 'View tickets and boarding passes', onTap: () => setState(() => _selectedIndex = 1)),
+              _ProfileTile(icon: Icons.help_outline, title: 'Help & Support', subtitle: 'Get help with bookings and trips', onTap: _showSupportDialog),
+              _ProfileTile(icon: Icons.info_outline, title: 'About ZamBus', subtitle: 'Version, credits and licenses', onTap: _showAboutDialog),
               const SizedBox(height: 24),
               AppButton(
                 label: 'Sign Out',
@@ -469,6 +510,21 @@ class _PassengerHomeViewState extends State<_PassengerHomeView> {
   }
 }
 
+/// Small connector line drawn between the From and To fields.
+class _ConnectorPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.primary.withValues(alpha: 0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawLine(Offset(size.width / 2, 0), Offset(size.width / 2, size.height), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class _TripCard extends StatelessWidget {
   final Trip trip;
   const _TripCard({required this.trip});
@@ -476,90 +532,113 @@ class _TripCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final soldOut = trip.remainingSeats != null && trip.remainingSeats! <= 0;
+    final bookable = trip.canBook && !soldOut;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: trip.canBook && !soldOut
+        borderRadius: BorderRadius.circular(16),
+        onTap: bookable
             ? () => Navigator.pushNamed(context, '/passenger/trip-details', arguments: trip.tripId)
             : null,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Route line: origin - connector - destination
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      trip.routeDisplay,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          Formatters.formatDisplayTime(trip.departureTime),
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          trip.origin ?? 'Origin',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: trip.status == 'BOARDING' ? AppColors.successLight : AppColors.infoLight,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      Formatters.formatTripStatus(trip.status),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: trip.status == 'BOARDING' ? AppColors.success : AppColors.info,
+                  Column(
+                    children: [
+                      Text(
+                        Formatters.tripDuration(trip.departureTime, trip.estimatedArrival),
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textHint),
                       ),
+                      const SizedBox(height: 2),
+                      SizedBox(
+                        width: 64,
+                        child: Row(
+                          children: [
+                            const Expanded(child: Divider(thickness: 1.5, color: AppColors.border)),
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                            ),
+                            const Expanded(child: Divider(thickness: 1.5, color: AppColors.border)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          Formatters.formatDisplayTime(trip.estimatedArrival),
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          trip.destination ?? 'Destination',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
-                  const SizedBox(width: 4),
-                  Text(
-                    Formatters.formatDisplayDate(trip.departureTime),
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                  ),
-                  const SizedBox(width: 12),
-                  const Icon(Icons.schedule, size: 16, color: AppColors.textSecondary),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${Formatters.formatDisplayTime(trip.departureTime)} - ${Formatters.formatDisplayTime(trip.estimatedArrival)}',
-                    style: const TextStyle(color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              // Meta row: fare, category, seats, status
               Row(
                 children: [
                   Text(
                     Formatters.formatCurrency(trip.fareAmount),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.primary, letterSpacing: -0.3),
                   ),
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      Formatters.formatBusCategory(trip.busCategory),
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                    ),
-                  ),
+                  StatusBadge(label: Formatters.formatBusCategory(trip.busCategory)),
                   const Spacer(),
-                  if (trip.remainingSeats != null)
+                  if (trip.remainingSeats != null) ...[
+                    Icon(Icons.event_seat, size: 14, color: soldOut ? AppColors.error : AppColors.success),
+                    const SizedBox(width: 4),
                     Text(
-                      soldOut ? 'Sold Out' : '${trip.remainingSeats} seats left',
+                      soldOut ? 'Sold Out' : '${trip.remainingSeats} left',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: soldOut ? AppColors.error : AppColors.success,
                       ),
                     ),
+                    const SizedBox(width: 10),
+                  ],
+                  StatusBadge(
+                    label: Formatters.formatTripStatus(trip.status).toUpperCase(),
+                    fontSize: 10,
+                  ),
                 ],
               ),
             ],
@@ -573,21 +652,30 @@ class _TripCard extends StatelessWidget {
 class _QuickRoute extends StatelessWidget {
   final String from;
   final String to;
+  final String distance;
   final VoidCallback onTap;
-  const _QuickRoute({required this.from, required this.to, required this.onTap});
+  const _QuickRoute({required this.from, required this.to, required this.distance, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: AppColors.primaryLight,
-          child: Icon(Icons.directions_bus, color: Colors.white, size: 20),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.directions_bus_outlined, color: AppColors.primary, size: 20),
         ),
-        title: Text('$from - $to'),
-        subtitle: const Text('Tap to search trips'),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        title: Text(
+          '$from - $to',
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+        subtitle: Text(distance, style: const TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textHint),
         onTap: onTap,
       ),
     );
@@ -643,18 +731,28 @@ class _SearchMessage extends StatelessWidget {
 class _ProfileTile extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String subtitle;
   final VoidCallback onTap;
 
-  const _ProfileTile({required this.icon, required this.title, required this.onTap});
+  const _ProfileTile({required this.icon, required this.title, required this.subtitle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
-        title: Text(title),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 20),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textHint),
         onTap: onTap,
       ),
     );
@@ -684,12 +782,27 @@ class MyBookingsTab extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.confirmation_num_outlined, size: 64, color: AppColors.textHint),
-                        const SizedBox(height: 16),
-                        const Text('No bookings yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.06),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.confirmation_num_outlined, size: 40, color: AppColors.textHint),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text('No bookings yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
-                        const Text('Your bookings will appear here', style: TextStyle(color: AppColors.textSecondary)),
-                        const SizedBox(height: 16),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 48),
+                          child: Text(
+                            'Search for a trip and your tickets will appear here',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         OutlinedButton.icon(
                           onPressed: () => context.read<PassengerCubit>().getMyBookings(),
                           icon: const Icon(Icons.refresh),
@@ -708,77 +821,7 @@ class MyBookingsTab extends StatelessWidget {
                     itemCount: state.bookings.length,
                     itemBuilder: (context, index) {
                       final booking = state.bookings[index];
-                      final trip = booking.trip;
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => Navigator.pushNamed(context, '/passenger/ticket', arguments: booking.bookingId),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${booking.seatNumber}',
-                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        trip?.routeDisplay ?? 'Seat ${booking.seatNumber}',
-                                        style: const TextStyle(fontWeight: FontWeight.w600),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        trip?.departureTime != null
-                                            ? Formatters.formatDisplayDateTime(trip!.departureTime!)
-                                            : Formatters.formatBoardingStatus(booking.boardingStatus),
-                                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                                      ),
-                                      if (trip?.fareAmount != null) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          Formatters.formatCurrency(trip!.fareAmount!),
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: booking.isConfirmed ? AppColors.successLight : AppColors.warningLight,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    Formatters.formatPaymentStatus(booking.paymentStatus),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: booking.isConfirmed ? AppColors.success : AppColors.warning,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
+                      return _BookingCard(booking: booking);
                     },
                   ),
                 );
@@ -810,6 +853,89 @@ class MyBookingsTab extends StatelessWidget {
         );
       },
     ),
+    );
+  }
+}
+
+class _BookingCard extends StatelessWidget {
+  final dynamic booking;
+  const _BookingCard({required this.booking});
+
+  @override
+  Widget build(BuildContext context) {
+    final trip = booking.trip;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.pushNamed(context, '/passenger/ticket', arguments: booking.bookingId),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Seat chip
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${booking.seatNumber}',
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.primary),
+                    ),
+                    const Text(
+                      'SEAT',
+                      style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: AppColors.textHint, letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      trip?.routeDisplay ?? 'Seat ${booking.seatNumber}',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    if (trip?.departureTime != null)
+                      Text(
+                        Formatters.formatDisplayDateTime(trip!.departureTime!),
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      )
+                    else
+                      Text(
+                        Formatters.formatBoardingStatus(booking.boardingStatus),
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                    if (trip?.fareAmount != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        Formatters.formatCurrency(trip!.fareAmount!),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusBadge(label: Formatters.formatPaymentStatus(booking.paymentStatus).toUpperCase(), fontSize: 10),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.textHint),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

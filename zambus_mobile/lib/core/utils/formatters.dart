@@ -27,6 +27,15 @@ class Formatters {
     return _displayDateTimeFormat.format(date);
   }
 
+  /// Human-friendly duration between two times, e.g. "5h 30m".
+  static String tripDuration(DateTime departure, DateTime arrival) {
+    final diff = arrival.difference(departure);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    final h = diff.inHours;
+    final m = diff.inMinutes % 60;
+    return m == 0 ? '${h}h' : '${h}h ${m}m';
+  }
+
   static String formatCurrency(double amount, {String currency = 'K'}) {
     final formatter = NumberFormat.currency(
       symbol: currency,

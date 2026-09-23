@@ -74,21 +74,47 @@ class _SeatSelectionViewState extends State<_SeatSelectionView> {
           }
           if (state is SeatSelectionLoaded) {
             final fare = state.trip.fareAmount;
+            final trip = state.trip;
             return Column(
               children: [
-                // Legend
+                // Trip context + legend
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   color: AppColors.surface,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _LegendItem(color: AppColors.seatAvailable, label: 'Available'),
-                      _LegendItem(color: AppColors.seatSelected, label: 'Selected'),
-                      _LegendItem(color: AppColors.seatOccupied, label: 'Occupied'),
+                      if (trip.origin != null && trip.destination != null)
+                        Text(
+                          trip.routeDisplay,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: -0.2),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _LegendItem(color: AppColors.seatAvailable, label: 'Available'),
+                            SizedBox(width: 16),
+                            _LegendItem(color: AppColors.seatSelected, label: 'Selected'),
+                            SizedBox(width: 16),
+                            _LegendItem(color: AppColors.seatOccupied, label: 'Occupied'),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                const Divider(height: 1),
 
                 // Seat layout (real availability from backend)
                 Expanded(
@@ -105,32 +131,49 @@ class _SeatSelectionViewState extends State<_SeatSelectionView> {
 
                 // Bottom bar
                 Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                  decoration: BoxDecoration(
                     color: AppColors.surface,
+                    border: const Border(top: BorderSide(color: AppColors.border)),
                     boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2)),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
                     ],
                   ),
                   child: SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    top: false,
+                    child: Row(
                       children: [
-                        Text(
-                          _selectedSeat != null
-                              ? 'Seat $_selectedSeat selected - ${Formatters.formatCurrency(fare)}'
-                              : 'Tap a green seat to select it',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: _selectedSeat != null ? AppColors.primary : AppColors.textSecondary,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _selectedSeat != null ? 'Seat $_selectedSeat' : 'No seat selected',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: _selectedSeat != null ? AppColors.primary : AppColors.textHint,
+                                ),
+                              ),
+                              Text(
+                                _selectedSeat != null
+                                    ? Formatters.formatCurrency(fare)
+                                    : 'Tap a green seat to select it',
+                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(width: 16),
                         AppButton(
-                          label: 'Continue to Review',
+                          label: 'Continue',
                           onPressed: _selectedSeat != null ? () => _confirmSeat(_selectedSeat!, fare) : null,
-                          icon: Icons.event_seat,
+                          icon: Icons.arrow_forward,
                         ),
                       ],
                     ),
@@ -156,12 +199,12 @@ class _LegendItem extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 16,
-          height: 16,
+          width: 14,
+          height: 14,
           decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
         ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
       ],
     );
   }

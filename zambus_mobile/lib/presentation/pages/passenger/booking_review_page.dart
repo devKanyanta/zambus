@@ -7,6 +7,7 @@ import '../../cubit/passenger/passenger_state.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_display.dart';
+import '../../widgets/common/ui.dart';
 import '../../../core/utils/formatters.dart';
 
 class BookingReviewPage extends StatelessWidget {
@@ -53,125 +54,155 @@ class BookingReviewPage extends StatelessWidget {
             }
             if (state is TripDetailsLoaded) {
               final trip = state.trip;
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Booking summary card
-                    Container(
-                      width: double.infinity,
+              return Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Booking Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 20),
-                          _SummaryRow(label: 'Route', value: '${trip.origin} to ${trip.destination}'),
-                          const Divider(),
-                          _SummaryRow(label: 'Date', value: Formatters.formatDisplayDate(trip.departureTime)),
-                          const Divider(),
-                          _SummaryRow(label: 'Departure', value: Formatters.formatDisplayTime(trip.departureTime)),
-                          const Divider(),
-                          _SummaryRow(label: 'Bus', value: trip.bus?.model ?? 'N/A'),
-                          const Divider(),
-                          _SummaryRow(label: 'Registration', value: trip.bus?.registrationNumber ?? 'N/A'),
-                          const Divider(),
-                          _SummaryRow(label: 'Seat Number', value: '$seatNumber'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Price card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Total Fare', style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
-                          Text(
-                            Formatters.formatCurrency(trip.fareAmount),
-                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Payment notice
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.infoLight,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.info_outline, color: AppColors.info, size: 20),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Mock payment for Phase 1. No real payment will be processed.',
-                              style: TextStyle(fontSize: 13, color: AppColors.info),
+                          // Journey summary card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Column(
+                              children: [
+                                InfoRow(
+                                  icon: Icons.route_outlined,
+                                  label: 'Route',
+                                  value: '${trip.origin ?? "—"} to ${trip.destination ?? "—"}',
+                                ),
+                                const Divider(height: 16),
+                                InfoRow(
+                                  icon: Icons.calendar_today_outlined,
+                                  label: 'Date',
+                                  value: Formatters.formatDisplayDate(trip.departureTime),
+                                ),
+                                const Divider(height: 16),
+                                InfoRow(
+                                  icon: Icons.schedule_outlined,
+                                  label: 'Departure',
+                                  value: Formatters.formatDisplayTime(trip.departureTime),
+                                ),
+                                const Divider(height: 16),
+                                InfoRow(
+                                  icon: Icons.directions_bus_outlined,
+                                  label: 'Bus',
+                                  value: [trip.bus?.model, trip.bus?.registrationNumber]
+                                      .whereType<String>()
+                                      .join(' · '),
+                                ),
+                                const Divider(height: 16),
+                                InfoRow(
+                                  icon: Icons.event_seat_outlined,
+                                  label: 'Seat Number',
+                                  value: '$seatNumber',
+                                ),
+                              ],
                             ),
                           ),
+                          const SizedBox(height: 16),
+
+                          // Fare banner
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [AppColors.primary, AppColors.primaryDark],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Total Fare',
+                                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                                  ),
+                                ),
+                                Text(
+                                  Formatters.formatCurrency(trip.fareAmount),
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    letterSpacing: -0.8,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Payment notice
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.infoLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.info_outline, color: AppColors.info, size: 20),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Mock payment for Phase 1. No real payment will be processed.',
+                                    style: TextStyle(fontSize: 13, color: AppColors.info),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                  ),
 
-                    // Confirm button
-                    AppButton(
-                      label: 'Confirm Payment - ${Formatters.formatCurrency(trip.fareAmount)}',
-                      onPressed: () {
-                        // Creates the booking (locks the seat) then confirms
-                        // payment, producing the final QR ticket.
-                        context.read<PassengerCubit>().bookAndPay(tripId, seatNumber);
-                      },
-                      icon: Icons.payment,
+                  // Sticky confirm bar
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      border: const Border(top: BorderSide(color: AppColors.border)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                    child: SafeArea(
+                      top: false,
+                      child: AppButton(
+                        label: 'Confirm Payment - ${Formatters.formatCurrency(trip.fareAmount)}',
+                        onPressed: () {
+                          // Creates the booking (locks the seat) then confirms
+                          // payment, producing the final QR ticket.
+                          context.read<PassengerCubit>().bookAndPay(tripId, seatNumber);
+                        },
+                        icon: Icons.payment,
+                      ),
+                    ),
+                  ),
+                ],
               );
             }
             return const SizedBox.shrink();
           },
         ),
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _SummaryRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-          Flexible(
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600), textAlign: TextAlign.end),
-          ),
-        ],
       ),
     );
   }
