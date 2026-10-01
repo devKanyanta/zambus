@@ -325,8 +325,30 @@ export const adminController = {
       if (role === 'OPERATOR') {
         const operatorId = req.user?.userId;
         const company = await BusCompany.findOne({ where: { operatorId } });
+
+        // No company yet is an empty state, not an error: report zeroed
+        // company metrics so the revenue dashboard still renders and the
+        // operator can act (register a company) instead of hitting a 400.
         if (!company) {
-          errorResponse(res, 400, 'Operator must have a bus company to view analytics');
+          let commissionRate = config.app.commissionRate;
+          try {
+            const settings = await CommissionSettings.findOne();
+            if (settings) commissionRate = Number(settings.commissionRate);
+          } catch { /* table may not exist yet */ }
+
+          successResponse(res, 200, {
+            totalUsers: 0,
+            totalOperators: 1,
+            totalBuses: 0,
+            totalRoutes: 0,
+            totalActiveTrips: 0,
+            totalBookings: 0,
+            totalRevenue: 0,
+            commissionRate,
+            commissionAmount: 0,
+            netPayout: 0,
+            hasCompany: false,
+          });
           return;
         }
 
@@ -405,6 +427,7 @@ export const adminController = {
           commissionRate,
           commissionAmount,
           netPayout: totalRevenueNum - commissionAmount,
+          hasCompany: true,
         });
         return;
       }

@@ -134,13 +134,15 @@ describe('Admin Controller', () => {
       expect(response.data.totalRevenue).toBe(8000);
       expect(response.data.commissionAmount).toBe(800);
       expect(response.data.netPayout).toBe(7200);
+      expect(response.data.hasCompany).toBe(true);
     });
 
-    it('should error when operator has no company', async () => {
+    it('should return zeroed analytics with hasCompany false when operator has no company', async () => {
       const { adminController } = require('../src/controllers/admin.controller');
-      const { BusCompany } = require('../src/models');
+      const { BusCompany, CommissionSettings } = require('../src/models');
 
       BusCompany.findOne.mockResolvedValue(null);
+      CommissionSettings.findOne.mockResolvedValue({ commissionRate: 0.10 });
 
       const req = mockReq({ userId: 'operator-002', role: 'OPERATOR' });
       const res = mockRes();
@@ -149,7 +151,15 @@ describe('Admin Controller', () => {
 
       expect(res.json).toHaveBeenCalled();
       const response = res.json.mock.calls[0][0];
-      expect(response.success).toBe(false);
+      expect(response.success).toBe(true);
+      expect(response.data.hasCompany).toBe(false);
+      expect(response.data.totalBuses).toBe(0);
+      expect(response.data.totalRoutes).toBe(0);
+      expect(response.data.totalActiveTrips).toBe(0);
+      expect(response.data.totalBookings).toBe(0);
+      expect(response.data.totalRevenue).toBe(0);
+      expect(response.data.commissionAmount).toBe(0);
+      expect(response.data.netPayout).toBe(0);
     });
   });
 
